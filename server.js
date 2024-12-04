@@ -6,51 +6,48 @@
  * Email: sarmiene@oregonstate.edu
  */
 
-var path = require('path');
-var express = require('express');
-var exphbs = require('express-handlebars');
-var handlebarsLayouts = require('handlebars-layouts'); // Add this line
+const express = require('express');
+const path = require('path');
+const exphbs = require('express-handlebars');
+const hbsLayouts = require('handlebars-layouts'); // Import handlebars-layouts
 
-var app = express();
-var port = process.env.PORT || 3000;
+const app = express();
+const port = process.env.PORT || 3000;
 
-// Use static files from the 'static' folder
-app.use(express.static('static'));
+// Register the handlebars-layouts helpers to make them available in your templates
+const hbs = exphbs.create({
+  helpers: hbsLayouts
+});
 
-// Set up Handlebars as the view engine and specify the layout folder
-app.engine('handlebars', exphbs.engine({
-    defaultLayout: 'main',  // 'main' is the default layout (main.handlebars)
-    layoutsDir: path.join(__dirname, 'views', 'layouts'),
-    helpers: handlebarsLayouts  // Add this line to register handlebars-layouts
-}));
-
-// Set Handlebars as the view engine for the app
+app.engine('handlebars', hbs.engine); // Register Handlebars with express
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
 
+app.use(express.static('static'));
+
+// Your postData or any other data you might be using
 var postData = require('./postData.json');
 
-// Route for the homepage (list of all posts)
+// Routes
 app.get('/', function (req, res) {
-    res.status(200).render('postPage', { posts: postData });
+  res.status(200).render('postPage', { posts: postData });
 });
 
-// Route for individual posts
 app.get('/posts/:id', function (req, res) {
-    var id = parseInt(req.params.id);
-    if (id >= 0 && id < postData.length) {
-        res.status(200).render('singlePost', postData[id]);
-    } else {
-        res.status(404).render('404');
-    }
+  var id = parseInt(req.params.id);
+  if (id >= 0 && id < postData.length) {
+    res.status(200).render('singlePost', postData[id]);
+  } else {
+    res.status(404).render('404');
+  }
 });
 
 // Default 404 route
 app.get('*', function (req, res) {
-    res.status(404).render('404');
+  res.status(404).render('404');
 });
 
 // Start the server
 app.listen(port, function () {
-    console.log("== Server is listening on port", port);
+  console.log("== Server is listening on port", port);
 });
